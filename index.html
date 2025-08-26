@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Wallet</title>
+    <style>
+        /* Base Styles */
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0369a1;
+            --primary-glow: rgba(14, 165, 233, 0.5);
+            --success: #22c55e;
+            --success-dark: #15803d;
+            --danger: #ef4444;
+            --danger-dark: #b91c1c;
+            --dark: #0f172a;
+            --darker: #020617;
+            --light: #f1f5f9;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --admin-gold: #FFD700;
+            --admin-gold-dark: #FF8C00;
+            --admin-glow: rgba(255, 215, 0, 0.5);
+            --crypto-purple: #7928CA;
+            --crypto-purple-dark: #4C2889;
+            --crypto-glow: rgba(121, 40, 202, 0.5);
+            --withdraw-blue: #3b82f6;
+            --withdraw-blue-dark: #1d4ed8;
+            --withdraw-glow: rgba(59, 130, 246, 0.5);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(to bottom right, var(--darker), #1e293b);
+            color: var(--light);
+            min-height: 100vh;
+            padding-top: 40px;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Elements */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--crypto-purple) 0%, transparent 70%);
+            opacity: 0.1;
+            animation: floatAround 20s infinite linear;
+        }
+        
+        .floating-circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-duration: 25s;
+            animation-delay: 0s;
+        }
+        
+        .floating-circle:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            left: 80%;
+            animation-duration: 20s;
+            animation-delay: 5s;
+        }
+        
+        .floating-circle:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 80%;
+            left: 20%;
+            animation-duration: 15s;
+            animation-delay: 10s;
+        }
+        
+        .floating-circle:nth-child(4) {
+            width: 250px;
+            height: 250px;
+            top: 30%;
+            left: 70%;
+            animation-duration: 30s;
+            animation-delay: 15s;
+        }
+        
+        @keyframes floatAround {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(50px, 50px) rotate(90deg);
+            }
+            50% {
+                transform: translate(100px, 0) rotate(180deg);
+            }
+            75% {
+                transform: translate(50px, -50px) rotate(270deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Particle Animation */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: var(--crypto-purple);
+            border-radius: 50%;
+            opacity: 0;
+            animation: particleFloat 15s infinite linear;
+        }
+        
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) translateX(20px);
+                opacity: 0;
+            }
+        }
+        
+        /* Disclaimer Banner */
+        .disclaimer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--danger);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            animation: pulseWarning 2s infinite;
+        }
+        
+        @keyframes pulseWarning {
+            0% { background-color: var(--danger); }
+            50% { background-color: var(--danger-dark); }
+            100% { background-color: var(--danger); }
+        }
+        
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: 0.5s;
+        }
+        
+        .card:hover::before {
+            left: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Button Styles */
+        .btn {
+            background: linear-gradient(to right, var(--crypto-purple), var(--crypto-purple-dark));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px var(--crypto-glow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                rgba(255, 255, 255, 0.2),
+                rgba(255, 255, 255, 0)
+            );
+            transform: rotate(30deg);
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 20px var(--crypto-glow);
+        }
+        
+        .btn:hover::after {
+            transform: rotate(30deg) translate(10%, 10%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, var(--success), var(--success-dark));
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+        
+        .btn-success:hover {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(to right, var(--danger), var(--danger-dark));
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        }
+        
+        .btn-admin {
+            background: linear-gradient(to right, var(--admin-gold), var(--admin-gold-dark));
+            box-shadow: 0 0 10px var(--admin-glow);
+            color: #000;
+        }
+        
+        .btn-admin:hover {
+            box-shadow: 0 0 20px var(--admin-glow);
+        }
+        
+        .btn-withdraw {
+            background: linear-gradient(to right, var(--withdraw-blue), var(--withdraw-blue-dark));
+            box-shadow: 0 0 10px var(--withdraw-glow);
+        }
+        
+        .btn-withdraw:hover {
+            box-shadow: 0 0 20px var(--withdraw-glow);
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #c7d2fe;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.7);
+            color: var(--light);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--crypto-purple);
+            box-shadow: 0 0 15px var(--crypto-glow);
+            transform: translateY(-2px);
+        }
+        
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 14px 28px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 12px;
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .tab-btn:hover::before {
+            left: 100%;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(to right, var(--crypto-purple), var(--crypto-purple-dark));
+            box-shadow: 0 0 15px var(--crypto-glow);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.5s ease;
+            z-index: 1000;
+        }
+        
+        .toast.error {
+            background: var(--danger);
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Balance Card */
+        .balance-card {
+            text-align: center;
+            padding: 40px 30px;
+            background: linear-gradient(to right, var(--crypto-purple-dark), var(--crypto-purple));
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px var(--crypto-glow);
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 30px var(--crypto-glow); }
+            50% { box-shadow: 0 0 50px var(--crypto-glow); }
+            100% { box-shadow: 0 0 30px var(--crypto-glow); }
+        }
+        
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(to right, #00fffc, #00ff9d);
+            animation: shimmer 3s infinite linear;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        .admin-balance-card {
+            background: linear-gradient(to right, var(--admin-gold-dark), var(--admin-gold));
+            box-shadow: 0 0 30px var(--admin-glow);
+            color: #000;
+            animation: adminPulse 2s infinite;
+        }
+        
+        @keyframes adminPulse {
+            0% { box-shadow: 0 0 30px var(--admin-glow); }
+            50% { box-shadow: 0 0 50px var(--admin-glow); }
+            100% { box-shadow: 0 0 30px var(--admin-glow); }
+        }
+        
+        .withdraw-balance-card {
+            background: linear-gradient(to right, var(--withdraw-blue-dark), var(--withdraw-blue));
+            box-shadow: 0 0 30px var(--withdraw-glow);
+            animation: withdrawPulse 2s infinite;
+        }
+        
+        @keyframes withdrawPulse {
+            0% { box-shadow: 0 0 30px var(--withdraw-glow); }
+            50% { box-shadow: 0 0 50px var(--withdraw-glow); }
+            100% { box-shadow: 0 0 30px var(--withdraw-glow); }
+        }
+        
+        .balance-amount {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', monospace;
+            animation: countUp 1.5s ease-out;
+        }
+        
+        @keyframes countUp {
+            from { 
+                opacity: 0;
+                transform: scale(0.5);
+                letter-spacing: 10px;
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+                letter-spacing: normal;
+            }
+        }
+        
+        /* Transaction List */
+        .transaction-list {
+            list-style: none;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 18px;
+            border-bottom: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: rgba(15, 23, 42, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .transaction-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: 0.5s;
+        }
+        
+        .transaction-item:hover::before {
+            left: 100%;
+        }
+        
+        .transaction-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .transaction-credit {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .transaction-debit {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        /* QR Code */
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            display: inline-block;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mt-20 { margin-top: 20px; }
+        .mb-20 { margin-bottom: 20px; }
+        .hidden { display: none; }
+        
+        /* Login Screen */
+        .login-container {
+            max-width: 450px;
+            margin: 60px auto;
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(121, 40, 202, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: rotate(45deg) translateX(-100%); }
+            100% { transform: rotate(45deg) translateX(100%); }
+        }
+        
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .role-btn {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .role-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+            z-index: 1;
+        }
+        
+        .role-btn:hover::before {
+            left: 100%;
+        }
+        
+        .role-btn.active {
+            background: linear-gradient(to right, var(--crypto-purple), var(--crypto-purple-dark));
+            box-shadow: 0 0 15px var(--crypto-glow);
+        }
+        
+        /* Admin Dashboard */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        /* User Profile */
+        .profile-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        /* Copy to clipboard */
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        /* Admin Balance Indicator */
+        .admin-balance-indicator {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            background: var(--admin-gold);
+            color: #000;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            box-shadow: 0 0 20px var(--admin-glow);
+            z-index: 999;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* Crypto-like elements */
+        .crypto-badge {
+            display: inline-block;
+            background: linear-gradient(to right, var(--crypto-purple), var(--crypto-purple-dark));
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+            box-shadow: 0 0 10px var(--crypto-glow);
+            animation: pulse 2s infinite;
+        }
+        
+        /* Floating animation for balance */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Withdraw Form Styles */
+        .withdraw-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .withdraw-amount-group {
+            grid-column: span 2;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .profile-info, .withdraw-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .withdraw-amount-group {
+                grid-column: span 1;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .balance-amount {
+                font-size: 2.5rem;
+            }
+            
+            .admin-balance-indicator {
+                position: static;
+                margin-bottom: 20px;
+            }
+            
+            .login-container {
+                margin: 40px 20px;
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+    </div>
+    
+    <div class="particles" id="particles"></div>
+    
+    <div class="disclaimer">
+        THIS IS A SALARY WALLET ONLY EMPLOYEE CAN ACCESS | FOR ANY QUERY CONTACT US AT priyanshusharma3826@gmail.com
+    </div>
+    
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="login-screen" class="card login-container">
+            <h2 class="text-center mb-20">Salary Wallet</h2>
+            
+            <div class="role-selector">
+                <div class="role-btn active" data-role="user">User</div>
+                <div class="role-btn" data-role="admin">Admin</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter your email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password">
+            </div>
+            
+            <button class="btn" id="login-btn">Login</button>
+            
+            <p class="text-center mt-20">
+                <b>SUPPORT CONTACT TO OUR FOUNDER:</b><br>
+                priyanshusharma3826@gmail.com
+            </p>
+        </div>
+        
+        <!-- Main App (hidden initially) -->
+        <div id="app" class="hidden">
+            <!-- Admin Balance Indicator -->
+            <div id="admin-balance-indicator" class="admin-balance-indicator hidden">
+                Admin Balance: <span id="admin-balance-text">₹0</span>
+            </div>
+            
+            <!-- Header with logout -->
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Salary Wallet <span class="crypto-badge">CRYPTO</span></h2>
+                <div>
+                    <span id="user-info">Logged in as </span>
+                    <button class="btn btn-danger" id="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn" data-tab="withdraw">Withdraw</button>
+                <button class="tab-btn" data-tab="transactions">Transactions</button>
+                <button class="tab-btn" data-tab="profile">Profile</button>
+                <button class="tab-btn" data-tab="admin" id="admin-tab" style="display: none;">Admin</button>
+            </div>
+            
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard-tab">
+                <div class="balance-card floating" id="user-balance-card">
+                    <div>Your Balance</div>
+                    <div class="balance-amount" id="balance-amount">₹0</div>
+                    <div id="wallet-id">Wallet ID: </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Recent Transactions</h3>
+                    <ul class="transaction-list" id="recent-transactions">
+                        <!-- Transactions will be populated here -->
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Withdraw Tab -->
+            <div class="tab-content" id="withdraw-tab">
+                <div class="balance-card withdraw-balance-card floating">
+                    <div>Available Balance</div>
+                    <div class="balance-amount" id="withdraw-balance-amount">₹0</div>
+                    <div>Enter your bank details to withdraw funds</div>
+                </div>
+                
+                <div class="card">
+                    <h3>Withdraw Funds</h3>
+                    <form id="withdraw-form">
+                        <div class="withdraw-form">
+                            <div class="form-group">
+                                <label for="account-number">Account Number</label>
+                                <input type="text" id="account-number" placeholder="Enter account number" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ifsc-code">IFSC Code</label>
+                                <input type="text" id="ifsc-code" placeholder="Enter IFSC code" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="withdraw-email">Email ID</label>
+                                <input type="email" id="withdraw-email" placeholder="Enter your email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="contact-number">Contact Number</label>
+                                <input type="tel" id="contact-number" placeholder="Enter contact number" required>
+                            </div>
+                            
+                            <div class="form-group withdraw-amount-group">
+                                <label for="withdraw-amount">Amount (₹)</label>
+                                <input type="number" id="withdraw-amount" placeholder="Enter amount to withdraw" min="1" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-withdraw" id="withdraw-btn">Withdraw Funds</button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <h3>Withdrawal History</h3>
+                    <ul class="transaction-list" id="withdrawal-history">
+                        <!-- Withdrawal history will be populated here -->
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Transactions Tab -->
+            <div class="tab-content" id="transactions-tab">
+                <div class="card">
+                    <h3>Transaction History</h3>
+                    <ul class="transaction-list" id="all-transactions">
+                        <!-- All transactions will be populated here -->
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Profile Tab -->
+            <div class="tab-content" id="profile-tab">
+                <div class="card">
+                    <h3>Profile Information</h3>
+                    <div class="profile-info">
+                        <div>
+                            <label>Name</label>
+                            <input type="text" id="profile-name" readonly>
+                        </div>
+                        <div>
+                            <label>Email</label>
+                            <input type="email" id="profile-email" readonly>
+                        </div>
+                        <div>
+                            <label>Phone</label>
+                            <input type="text" id="profile-phone" readonly>
+                        </div>
+                        <div>
+                            <label>Wallet ID</label>
+                            <div style="display: flex;">
+                                <input type="text" id="profile-wallet-id" readonly>
+                                <button class="copy-btn" data-copy="profile-wallet-id">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card text-center">
+                    <h3>Wallet QR Code</h3>
+                    <div id="qr-code" style="width: 200px; height: 200px; margin: 0 auto;"></div>
+                </div>
+            </div>
+            
+            <!-- Admin Tab -->
+            <div class="tab-content" id="admin-tab">
+                <div class="balance-card admin-balance-card floating">
+                    <div>Admin Treasury Balance</div>
+                    <div class="balance-amount" id="admin-balance-amount">₹0</div>
+                    <div>You can distribute salary from this account</div>
+                </div>
+                
+                <div class="card">
+                    <h3>Credit Salary</h3>
+                    <div class="form-group">
+                        <label for="recipient">Recipient (Wallet ID or Phone)</label>
+                        <input type="text" id="recipient" placeholder="Enter Wallet ID or Phone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="amount">Amount (₹)</label>
+                        <input type="number" id="amount" placeholder="Enter amount" min="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note">Note</label>
+                        <input type="text" id="note" placeholder="e.g., Salary Aug">
+                    </div>
+                    
+                    <button class="btn btn-admin" id="credit-salary-btn">Credit Salary</button>
+                </div>
+                
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions">
+                        <button class="btn" data-amount="5000">₹5,000</button>
+                        <button class="btn" data-amount="10000">₹10,000</button>
+                        <button class="btn" data-amount="15000">₹15,000</button>
+                        <button class="btn" data-amount="20000">₹20,000</button>
+                        <button class="btn" data-amount="50000">₹50,000</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Recent Transactions</h3>
+                    <ul class="transaction-list" id="admin-transactions">
+                        <!-- Admin transactions will be populated here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <!-- EmailJS Library -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <script>
+        // Initialize EmailJS with your public key
+        (function() {
+            emailjs.init("bTMYTv5Vwwd6Fp6lA"); // Your EmailJS public key
+        })();
+
+        // Data storage and management
+        const DataManager = {
+            init() {
+                // Initialize data if not exists
+                if (!localStorage.getItem('users')) {
+                    this.seedData();
+                }
+                
+                // Load current session if exists
+                if (localStorage.getItem('currentUser')) {
+                    this.loadSession();
+                }
+                
+                // Initialize withdrawals if not exists
+                if (!localStorage.getItem('withdrawals')) {
+                    localStorage.setItem('withdrawals', JSON.stringify([]));
+                }
+            },
+            
+            seedData() {
+                // Create sample users with your credentials
+                // Using fixed wallet IDs to prevent regeneration on page refresh
+                const users = [
+                    {
+                        id: 1,
+                        email: 'm.ahoora2582@gmail.com',
+                        password: 'Ibm@7749',
+                        name: 'Mohd Ahoora',
+                        phone: '9038756466',
+                        walletId: 'SW1000001',
+                        balance: 0,
+                        role: 'user'
+                    },
+                    {
+                        id: 2,
+                        email: 'farhankhanhumhai@gmail.com',
+                        password: '@Farhan7749',
+                        name: 'Farhan Khan',
+                        phone: '9628747153',
+                        walletId: 'SW1000002',
+                        balance: 0,
+                        role: 'user'
+                    },
+                    {
+                        id: 3,
+                        email: 'mohdaamirkhan276@gmail.com',
+                        password: '@Amir7749',
+                        name: 'Mohd Aamir',
+                        phone: '9956064424',
+                        walletId: 'SW1000003',
+                        balance: 0,
+                        role: 'user'
+                    },
+                    {
+                        id: 4,
+                        email: 'syedafroz29543@gmail.com',
+                        password: 'Ibm@7749',
+                        name: 'syed afroz',
+                        phone: '9000000004',
+                        walletId: 'SW1000004',
+                        balance: 0,
+                        role: 'user'
+                    },
+                    {
+                        id: 5,
+                        email: 'priyanshusharma3826@gmail.com',
+                        password: '#Ps*(77)',
+                        name: 'PRIYANSHU SHARMA',
+                        phone: '8881110233',
+                        walletId: 'ADMIN',
+                        balance: 100000000000000000000000000000000000000000000000000,
+                        role: 'admin'
+                    },
+                    
+                ];
+                
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Initialize transactions if not exists
+                if (!localStorage.getItem('transactions')) {
+                    // Create some sample transactions
+                    const transactions = [
+                        {
+                            id: 'TXN1001',
+                            from: 'ADMIN',
+                            to: 'SW1000001',
+                            amount: 0,
+                            note: 'Salary July',
+                            time: new Date(Date.now() - 86400000 * 7).toISOString()
+                        },
+                        {
+                            id: 'TXN1002',
+                            from: 'ADMIN',
+                            to: 'SW1000002',
+                            amount: 0,
+                            note: 'Salary July',
+                            time: new Date(Date.now() - 86400000 * 7).toISOString()
+                        },
+                        {
+                            id: 'TXN1003',
+                            from: 'ADMIN',
+                            to: 'SW1000003',
+                            amount: 0,
+                            note: 'Salary July',
+                            time: new Date(Date.now() - 86400000 * 7).toISOString()
+                        },
+                        {
+                            id: 'TXN1004',
+                            from: 'ADMIN',
+                            to: 'SW1000004',
+                            amount: 0,
+                            note: 'Salary July',
+                            time: new Date(Date.now() - 86400000 * 7).toISOString()
+                        }
+                    ];
+                    localStorage.setItem('transactions', JSON.stringify(transactions));
+                }
+            },
+            
+            getUsers() {
+                return JSON.parse(localStorage.getItem('users') || '[]');
+            },
+            
+            getTransactions() {
+                return JSON.parse(localStorage.getItem('transactions') || '[]');
+            },
+            
+            getWithdrawals() {
+                return JSON.parse(localStorage.getItem('withdrawals') || '[]');
+            },
+            
+            findUserByEmail(email) {
+                return this.getUsers().find(user => user.email === email);
+            },
+            
+            findUserByWalletId(walletId) {
+                return this.getUsers().find(user => user.walletId === walletId);
+            },
+            
+            findUserByPhone(phone) {
+                return this.getUsers().find(user => user.phone === phone);
+            },
+            
+            addTransaction(transaction) {
+                const transactions = this.getTransactions();
+                transaction.id = 'TXN' + Date.now();
+                transaction.time = new Date().toISOString();
+                transactions.unshift(transaction);
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                
+                // Update recipient balance
+                if (transaction.to !== 'ADMIN') {
+                    const users = this.getUsers();
+                    const recipient = users.find(user => user.walletId === transaction.to);
+                    if (recipient) {
+                        recipient.balance += transaction.amount;
+                        localStorage.setItem('users', JSON.stringify(users));
+                    }
+                }
+                
+                // Update sender balance (if from admin)
+                if (transaction.from === 'ADMIN') {
+                    const users = this.getUsers();
+                    const admin = users.find(user => user.walletId === 'ADMIN');
+                    if (admin) {
+                        admin.balance -= transaction.amount;
+                        localStorage.setItem('users', JSON.stringify(users));
+                    }
+                }
+                
+                return transaction;
+            },
+            
+            addWithdrawal(withdrawalData) {
+                const withdrawals = this.getWithdrawals();
+                withdrawalData.id = 'WDL' + Date.now();
+                withdrawalData.time = new Date().toISOString();
+                withdrawalData.status = 'Success';
+                withdrawals.unshift(withdrawalData);
+                localStorage.setItem('withdrawals', JSON.stringify(withdrawals));
+                
+                // Update user balance - deduct the withdrawal amount
+                const users = this.getUsers();
+                const user = users.find(u => u.walletId === withdrawalData.walletId);
+                if (user && user.role !== 'admin') {
+                    user.balance -= withdrawalData.amount;
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+                
+                return withdrawalData;
+            },
+            
+            getTransactionsForUser(walletId) {
+                return this.getTransactions().filter(
+                    txn => txn.to === walletId || txn.from === walletId
+                );
+            },
+            
+            getWithdrawalsForUser(walletId) {
+                return this.getWithdrawals().filter(
+                    withdrawal => withdrawal.walletId === walletId
+                );
+            },
+            
+            setCurrentUser(user) {
+                // Don't store password in session
+                const { password, ...userWithoutPassword } = user;
+                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+            },
+            
+            getCurrentUser() {
+                return JSON.parse(localStorage.getItem('currentUser') || 'null');
+            },
+            
+            clearSession() {
+                localStorage.removeItem('currentUser');
+            },
+            
+            loadSession() {
+                const currentUser = this.getCurrentUser();
+                if (currentUser) {
+                    // Refresh user data from stored users
+                    const users = this.getUsers();
+                    const refreshedUser = users.find(user => user.id === currentUser.id);
+                    if (refreshedUser) {
+                        this.setCurrentUser(refreshedUser);
+                        return refreshedUser;
+                    }
+                }
+                return null;
+            },
+            
+            getAdminBalance() {
+                const users = this.getUsers();
+                const admin = users.find(user => user.role === 'admin');
+                return admin ? admin.balance : 0;
+            }
+        };
+        
+        // UI Controller
+        const UIController = {
+            elements: {},
+            
+            init() {
+                this.cacheElements();
+                this.bindEvents();
+                this.createParticles();
+                
+                // Check if user is already logged in
+                const currentUser = DataManager.getCurrentUser();
+                if (currentUser) {
+                    this.showApp();
+                    this.updateUI();
+                }
+            },
+            
+            createParticles() {
+                const particlesContainer = document.getElementById('particles');
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    // Random position
+                    const left = Math.random() * 100;
+                    const delay = Math.random() * 15;
+                    
+                    particle.style.left = `${left}%`;
+                    particle.style.animationDelay = `${delay}s`;
+                    
+                    particlesContainer.appendChild(particle);
+                }
+            },
+            
+            cacheElements() {
+                // Login elements
+                this.elements.loginScreen = document.getElementById('login-screen');
+                this.elements.app = document.getElementById('app');
+                this.elements.roleButtons = document.querySelectorAll('.role-btn');
+                this.elements.emailInput = document.getElementById('email');
+                this.elements.passwordInput = document.getElementById('password');
+                this.elements.loginBtn = document.getElementById('login-btn');
+                
+                // App elements
+                this.elements.logoutBtn = document.getElementById('logout-btn');
+                this.elements.userInfo = document.getElementById('user-info');
+                this.elements.tabButtons = document.querySelectorAll('.tab-btn');
+                this.elements.tabContents = document.querySelectorAll('.tab-content');
+                this.elements.adminTab = document.getElementById('admin-tab');
+                this.elements.adminTabBtn = document.getElementById('admin-tab');
+                this.elements.adminBalanceIndicator = document.getElementById('admin-balance-indicator');
+                this.elements.adminBalanceText = document.getElementById('admin-balance-text');
+                
+                // Dashboard elements
+                this.elements.balanceAmount = document.getElementById('balance-amount');
+                this.elements.walletId = document.getElementById('wallet-id');
+                this.elements.recentTransactions = document.getElementById('recent-transactions');
+                this.elements.userBalanceCard = document.getElementById('user-balance-card');
+                
+                // Withdraw elements
+                this.elements.withdrawBalanceAmount = document.getElementById('withdraw-balance-amount');
+                this.elements.withdrawForm = document.getElementById('withdraw-form');
+                this.elements.accountNumber = document.getElementById('account-number');
+                this.elements.ifscCode = document.getElementById('ifsc-code');
+                this.elements.withdrawEmail = document.getElementById('withdraw-email');
+                this.elements.contactNumber = document.getElementById('contact-number');
+                this.elements.withdrawAmount = document.getElementById('withdraw-amount');
+                this.elements.withdrawBtn = document.getElementById('withdraw-btn');
+                this.elements.withdrawalHistory = document.getElementById('withdrawal-history');
+                
+                // Transactions elements
+                this.elements.allTransactions = document.getElementById('all-transactions');
+                
+                // Profile elements
+                this.elements.profileName = document.getElementById('profile-name');
+                this.elements.profileEmail = document.getElementById('profile-email');
+                this.elements.profilePhone = document.getElementById('profile-phone');
+                this.elements.profileWalletId = document.getElementById('profile-wallet-id');
+                this.elements.qrCode = document.getElementById('qr-code');
+                
+                // Admin elements
+                this.elements.recipientInput = document.getElementById('recipient');
+                this.elements.amountInput = document.getElementById('amount');
+                this.elements.noteInput = document.getElementById('note');
+                this.elements.creditSalaryBtn = document.getElementById('credit-salary-btn');
+                this.elements.quickActionBtns = document.querySelectorAll('[data-amount]');
+                this.elements.adminTransactions = document.getElementById('admin-transactions');
+                this.elements.adminBalanceAmount = document.getElementById('admin-balance-amount');
+                
+                // Toast
+                this.elements.toast = document.getElementById('toast');
+            },
+            
+            bindEvents() {
+                // Login events
+                this.elements.roleButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.elements.roleButtons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                });
+                
+                // Fix: Add event listener to login button
+                this.elements.loginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+                
+                // Allow pressing Enter to login
+                this.elements.passwordInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.handleLogin();
+                    }
+                });
+                
+                // Logout event
+                this.elements.logoutBtn.addEventListener('click', () => this.handleLogout());
+                
+                // Tab events
+                this.elements.tabButtons.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const tab = e.target.dataset.tab;
+                        this.switchTab(tab);
+                    });
+                });
+                
+                // Copy button events
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('copy-btn')) {
+                        const targetId = e.target.dataset.copy;
+                        const input = document.getElementById(targetId);
+                        input.select();
+                        document.execCommand('copy');
+                        this.showToast('Copied to clipboard!');
+                    }
+                });
+                
+                // Withdraw form event
+                this.elements.withdrawForm.addEventListener('submit', (e) => this.handleWithdraw(e));
+                
+                // Admin events
+                this.elements.creditSalaryBtn.addEventListener('click', () => this.handleCreditSalary());
+                
+                this.elements.quickActionBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.elements.amountInput.value = e.target.dataset.amount;
+                    });
+                });
+            },
+            
+            handleLogin() {
+                const role = document.querySelector('.role-btn.active').dataset.role;
+                const email = this.elements.emailInput.value.trim();
+                const password = this.elements.passwordInput.value;
+                
+                if (!email || !password) {
+                    this.showToast('Please enter both email and password', 'error');
+                    return;
+                }
+                
+                const user = DataManager.findUserByEmail(email);
+                
+                if (!user) {
+                    this.showToast('User not found', 'error');
+                    return;
+                }
+                
+                if (user.password !== password) {
+                    this.showToast('Invalid password', 'error');
+                    return;
+                }
+                
+                if (user.role !== role) {
+                    this.showToast(`Please select ${user.role} login`, 'error');
+                    return;
+                }
+                
+                DataManager.setCurrentUser(user);
+                this.showApp();
+                this.updateUI();
+                this.showToast(`Welcome back, ${user.name}!`);
+            },
+            
+            handleLogout() {
+                DataManager.clearSession();
+                this.hideApp();
+                this.showToast('Logged out successfully');
+            },
+            
+            showApp() {
+                this.elements.loginScreen.classList.add('hidden');
+                this.elements.app.classList.remove('hidden');
+            },
+            
+            hideApp() {
+                this.elements.loginScreen.classList.remove('hidden');
+                this.elements.app.classList.add('hidden');
+                // Clear login form
+                this.elements.emailInput.value = '';
+                this.elements.passwordInput.value = '';
+            },
+            
+            updateUI() {
+                const user = DataManager.getCurrentUser();
+                if (!user) return;
+                
+                // Update user info
+                this.elements.userInfo.textContent = `Logged in as ${user.name} (${user.role})`;
+                
+                // Show/hide admin tab based on role
+                this.elements.adminTabBtn.style.display = user.role === 'admin' ? 'block' : 'none';
+                
+                // Show/hide admin balance indicator
+                this.elements.adminBalanceIndicator.classList.toggle('hidden', user.role !== 'admin');
+                
+                // Update dashboard
+                this.elements.balanceAmount.textContent = `₹${user.balance.toLocaleString('en-IN')}`;
+                this.elements.walletId.textContent = `Wallet ID: ${user.walletId}`;
+                
+                // Update withdraw balance
+                this.elements.withdrawBalanceAmount.textContent = `₹${user.balance.toLocaleString('en-IN')}`;
+                
+                // Pre-fill withdraw form with user data
+                this.elements.withdrawEmail.value = user.email;
+                this.elements.contactNumber.value = user.phone;
+                
+                // Update admin balance if admin
+                if (user.role === 'admin') {
+                    const adminBalance = DataManager.getAdminBalance();
+                    this.elements.adminBalanceAmount.textContent = `₹${adminBalance.toLocaleString('en-IN')}`;
+                    this.elements.adminBalanceText.textContent = `₹${adminBalance.toLocaleString('en-IN')}`;
+                    
+                    // Special styling for admin balance card
+                    this.elements.userBalanceCard.classList.add('admin-balance-card');
+                } else {
+                    this.elements.userBalanceCard.classList.remove('admin-balance-card');
+                }
+                
+                // Update profile
+                this.elements.profileName.value = user.name;
+                this.elements.profileEmail.value = user.email;
+                this.elements.profilePhone.value = this.maskPhone(user.phone);
+                this.elements.profileWalletId.value = user.walletId;
+                
+                // Generate QR code
+                this.generateQRCode(user.walletId);
+                
+                // Update transactions
+                this.updateTransactionLists();
+                
+                // Update withdrawal history
+                this.updateWithdrawalHistory();
+                
+                // Update admin transactions if admin
+                if (user.role === 'admin') {
+                    this.updateAdminTransactions();
+                }
+            },
+            
+            switchTab(tabName) {
+                // Update tab buttons
+                this.elements.tabButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === tabName);
+                });
+                
+                // Update tab contents
+                this.elements.tabContents.forEach(tab => {
+                    tab.classList.toggle('active', tab.id === `${tabName}-tab`);
+                });
+                
+                // If switching to admin tab, refresh admin data
+                if (tabName === 'admin') {
+                    this.updateAdminTransactions();
+                }
+            },
+            
+            updateTransactionLists() {
+                const user = DataManager.getCurrentUser();
+                const transactions = DataManager.getTransactionsForUser(user.walletId);
+                
+                // Clear existing transactions
+                this.elements.recentTransactions.innerHTML = '';
+                this.elements.allTransactions.innerHTML = '';
+                
+                // Show message if no transactions
+                if (transactions.length === 0) {
+                    const message = '<li class="transaction-item">No transactions yet</li>';
+                    this.elements.recentTransactions.innerHTML = message;
+                    this.elements.allTransactions.innerHTML = message;
+                    return;
+                }
+                
+                // Recent transactions (last 10)
+                const recentTxns = transactions.slice(0, 10);
+                recentTxns.forEach(txn => {
+                    this.elements.recentTransactions.appendChild(this.createTransactionElement(txn, user.walletId));
+                });
+                
+                // All transactions
+                transactions.forEach(txn => {
+                    this.elements.allTransactions.appendChild(this.createTransactionElement(txn, user.walletId));
+                });
+            },
+            
+            updateWithdrawalHistory() {
+                const user = DataManager.getCurrentUser();
+                const withdrawals = DataManager.getWithdrawalsForUser(user.walletId);
+                this.elements.withdrawalHistory.innerHTML = '';
+                
+                if (withdrawals.length === 0) {
+                    this.elements.withdrawalHistory.innerHTML = '<li class="transaction-item">No withdrawal requests yet</li>';
+                    return;
+                }
+                
+                withdrawals.forEach(withdrawal => {
+                    this.elements.withdrawalHistory.appendChild(this.createWithdrawalElement(withdrawal));
+                });
+            },
+            
+            createTransactionElement(transaction, userWalletId = null) {
+                const li = document.createElement('li');
+                li.className = 'transaction-item';
+                
+                const isCredit = transaction.to === userWalletId;
+                const amountClass = isCredit ? 'transaction-credit' : 'transaction-debit';
+                const amountPrefix = isCredit ? '+' : '-';
+                
+                // Format date
+                const date = new Date(transaction.time);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                li.innerHTML = `
+                    <div>
+                        <div>${transaction.note || 'Transaction'}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">${formattedDate}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">From: ${transaction.from} → To: ${transaction.to}</div>
+                    </div>
+                    <div class="${amountClass}">${amountPrefix}₹${transaction.amount.toLocaleString('en-IN')}</div>
+                `;
+                
+                return li;
+            },
+            
+            createWithdrawalElement(withdrawal) {
+                const li = document.createElement('li');
+                li.className = 'transaction-item';
+                
+                // Format date
+                const date = new Date(withdrawal.time);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                li.innerHTML = `
+                    <div>
+                        <div>Withdrawal Request</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">${formattedDate}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">Account: ${withdrawal.account}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">Status: ${withdrawal.status}</div>
+                </div>
+                <div class="transaction-debit">-₹${withdrawal.amount.toLocaleString('en-IN')}</div>
+                `;
+                
+                return li;
+            },
+            
+            updateAdminTransactions() {
+                const transactions = DataManager.getTransactions().slice(0, 10);
+                this.elements.adminTransactions.innerHTML = '';
+                
+                if (transactions.length === 0) {
+                    this.elements.adminTransactions.innerHTML = '<li class="transaction-item">No transactions yet</li>';
+                    return;
+                }
+                
+                transactions.forEach(txn => {
+                    this.elements.adminTransactions.appendChild(this.createTransactionElement(txn));
+                });
+            },
+            
+            async handleWithdraw(e) {
+                e.preventDefault();
+                
+                const user = DataManager.getCurrentUser();
+                if (!user) return;
+                
+                const account = this.elements.accountNumber.value.trim();
+                const ifsc = this.elements.ifscCode.value.trim();
+                const email = this.elements.withdrawEmail.value.trim();
+                const contact = this.elements.contactNumber.value.trim();
+                const amount = parseFloat(this.elements.withdrawAmount.value);
+                
+                if (!account || !ifsc || !email || !contact || !amount) {
+                    this.showToast('Please fill all fields', 'error');
+                    return;
+                }
+                
+                if (amount <= 0) {
+                    this.showToast('Please enter a valid amount', 'error');
+                    return;
+                }
+                
+                if (amount > user.balance) {
+                    this.showToast('Insufficient balance', 'error');
+                    return;
+                }
+                
+                // Create withdrawal data
+                const withdrawalData = {
+                    walletId: user.walletId,
+                    account: account,
+                    ifsc: ifsc,
+                    email: email,
+                    contact: contact,
+                    amount: amount
+                };
+                
+                try {
+                    // Show loading state
+                    this.elements.withdrawBtn.textContent = 'Processing...';
+                    this.elements.withdrawBtn.disabled = true;
+                    
+                    // Add withdrawal to local storage (this will deduct the amount)
+                    DataManager.addWithdrawal(withdrawalData);
+                    
+                    // Update UI to reflect the new balance
+                    this.updateUI();
+                    
+                    // Send data via EmailJS
+                    await this.sendWithdrawalEmail(withdrawalData, user);
+                    
+                    // Show success message
+                    this.showToast(`Withdrawal request of ₹${amount.toLocaleString('en-IN')} submitted successfully`);
+                    
+                    // Reset form
+                    this.elements.accountNumber.value = '';
+                    this.elements.ifscCode.value = '';
+                    this.elements.withdrawAmount.value = '';
+                } catch (error) {
+                    console.error('Withdrawal error:', error);
+                    this.showToast('Withdrawal processed locally but email notification failed', 'error');
+                } finally {
+                    // Reset button state
+                    this.elements.withdrawBtn.textContent = 'Withdraw Funds';
+                    this.elements.withdrawBtn.disabled = false;
+                }
+            },
+            
+            async sendWithdrawalEmail(withdrawalData, user) {
+                // Prepare email parameters
+                const templateParams = {
+                    to_email: "priyanshusharma3826@gmail.com", // Your admin email
+                    from_name: "Salary Wallet System",
+                    to_name: "Admin",
+                    subject: `New Withdrawal Request - ${user.walletId}`,
+                    message: `
+                        New withdrawal request received:
+                        
+                        User Details:
+                        - Name: ${user.name}
+                        - Wallet ID: ${user.walletId}
+                        - Email: ${user.email}
+                        - Phone: ${user.phone}
+                        
+                        Withdrawal Details:
+                        - Amount: ₹${withdrawalData.amount}
+                        - Bank Account: ${withdrawalData.account}
+                        - IFSC Code: ${withdrawalData.ifsc}
+                        - Contact: ${withdrawalData.contact}
+                        
+                        Time: ${new Date().toLocaleString()}
+                    `,
+                    reply_to: user.email
+                };
+                
+                try {
+                    // Send email using EmailJS
+                    const response = await emailjs.send(
+                        'service_m4608kr', // Your EmailJS service ID
+                        'template_vgefuw6', // Your EmailJS template ID
+                        templateParams
+                    );
+                    
+                    console.log('Email sent successfully:', response);
+                    return response;
+                } catch (error) {
+                    console.error('Email sending failed:', error);
+                    throw error;
+                }
+            },
+            
+            handleCreditSalary() {
+                const recipient = this.elements.recipientInput.value.trim();
+                const amount = parseFloat(this.elements.amountInput.value);
+                const note = this.elements.noteInput.value.trim();
+                const adminBalance = DataManager.getAdminBalance();
+                
+                if (!recipient) {
+                    this.showToast('Please enter a recipient');
+                    return;
+                }
+                
+                if (!amount || amount <= 0) {
+                    this.showToast('Please enter a valid amount');
+                    return;
+                }
+                
+                if (amount > adminBalance) {
+                    this.showToast('Insufficient admin balance');
+                    return;
+                }
+                
+                // Find recipient by wallet ID or phone
+                let user = DataManager.findUserByWalletId(recipient);
+                if (!user) {
+                    user = DataManager.findUserByPhone(recipient);
+                }
+                
+                if (!user) {
+                    this.showToast('Recipient not found');
+                    return;
+                }
+                
+                if (user.role === 'admin') {
+                    this.showToast('Cannot credit salary to admin');
+                    return;
+                }
+                
+                // Create transaction
+                const transaction = {
+                    from: 'ADMIN',
+                    to: user.walletId,
+                    amount: amount,
+                    note: note
+                };
+                
+                DataManager.addTransaction(transaction);
+                
+                // Update UI if recipient is current user
+                const currentUser = DataManager.getCurrentUser();
+                if (currentUser && currentUser.walletId === user.walletId) {
+                    currentUser.balance += amount;
+                    DataManager.setCurrentUser(currentUser);
+                    this.updateUI();
+                }
+                
+                // Update admin balance display
+                if (currentUser && currentUser.role === 'admin') {
+                    this.updateUI();
+                }
+                
+                // Show success message
+                this.showToast(`₹${amount.toLocaleString('en-IN')} credited to ${user.walletId}`);
+                
+                // Clear form
+                this.elements.recipientInput.value = '';
+                this.elements.amountInput.value = '';
+                this.elements.noteInput.value = '';
+            },
+            
+            generateQRCode(text) {
+                // Clear previous QR code
+                this.elements.qrCode.innerHTML = '';
+                
+                // Generate new QR code
+                QRCode.toCanvas(this.elements.qrCode, text, {
+                    width: 200,
+                    height: 200,
+                    margin: 1,
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    }
+                }, function (error) {
+                    if (error) console.error(error);
+                });
+            },
+            
+            maskPhone(phone) {
+                if (phone.length <= 4) return phone;
+                return '*'.repeat(phone.length - 4) + phone.slice(-4);
+            },
+            
+            showToast(message, type = 'success') {
+                this.elements.toast.textContent = message;
+                this.elements.toast.className = 'toast';
+                
+                if (type === 'error') {
+                    this.elements.toast.classList.add('error');
+                }
+                
+                this.elements.toast.classList.add('show');
+                
+                setTimeout(() => {
+                    this.elements.toast.classList.remove('show');
+                }, 3000);
+            }
+        };
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            DataManager.init();
+            UIController.init();
+        });
+    </script>
+</body>
+</html>
